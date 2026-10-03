@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Répartition des réponses · PME+</title>
+<style>
+:root{--bg:#f2f6f7;--ink:#14232b;--muted:#5a6b73;--line:#d3dde1;--teal:#0f5c5c;--no:#e4e9ec;--card:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px;padding:22px 32px 8px;max-width:1200px;margin:0 auto}
+h1{font-size:2rem;margin:0;letter-spacing:-.01em}
+.n{font-size:1.25rem}.n b{font-size:2.4rem;color:var(--teal);margin-right:6px}
+.tools{max-width:1200px;margin:0 auto;padding:0 32px 8px;display:flex;gap:16px;align-items:center;color:var(--muted);font-size:.95rem}
+button{font:inherit;background:transparent;border:2px solid var(--teal);color:var(--teal);border-radius:10px;padding:6px 14px;cursor:pointer;font-weight:600}
+button[aria-pressed="true"]{background:var(--teal);color:#fff}
+:focus-visible{outline:3px solid var(--teal);outline-offset:3px}
+main{max-width:1200px;margin:0 auto;padding:8px 32px 40px;display:grid;grid-template-columns:repeat(auto-fit,minmax(440px,1fr));gap:20px}
+section{background:var(--card);border-radius:14px;padding:18px 22px}
+section h2{font-size:1.25rem;margin:0 0 2px}
+.avg{color:var(--muted);font-size:.95rem;margin-bottom:8px}
+.row{padding:10px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.lab{display:flex;justify-content:space-between;gap:12px;font-weight:600}
+.bar{display:flex;height:22px;border-radius:6px;overflow:hidden;background:var(--no);margin-top:6px}
+.bar i{display:block;background:var(--teal);color:#fff;font-style:normal;font-size:.85rem;font-weight:700;padding-left:8px;line-height:22px;transition:width .5s;white-space:nowrap}
+.bar span{margin-left:auto;padding-right:8px;font-size:.85rem;line-height:22px;color:var(--muted)}
+.banner{max-width:1200px;margin:0 auto 6px;padding:8px 32px;color:var(--muted)}
+.err{color:#a3341f}
+@media (max-width:520px){main{grid-template-columns:1fr;padding:8px 14px}header,.tools{padding-left:14px;padding-right:14px}}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Répartition des réponses</h1>
+  <div class="n"><b id="n">0</b><span id="n-label">participant</span></div>
+</header>
+<div class="tools">
+  <button id="sort" aria-pressed="false">Trier par part de « oui »</button>
+  <span id="status">Mise à jour automatique</span>
+</div>
+<div class="banner" id="demo" hidden>Mode démo : données simulées. Renseignez ENDPOINT dans config.js.</div>
+<main id="grid"></main>
+
+<script src="config.js"></script>
+<script src="questions.js"></script>
+<script src="shared.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+let sorted = false, last = null;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function render(){
+  if (!last) return;
+  const s = last;
+  $("n").textContent = s.n;
+  $("n-label").textContent = s.n > 1 ? "participants" : "participant";
+  const avgs = pillarAverages(s);
+  $("grid").innerHTML = PILLARS.map((name, p) => {
+    let idx = QUESTIONS.map((q,i)=>q.pillar===p?i:-1).filter(i=>i>=0);
+    if (sorted) idx.sort((a,b) => s.yes[b] - s.yes[a]);
+    const rows = idx.map(i => {
+      const y = pct(s.yes[i], s.n);
+      return '<div class="row"><div class="lab"><span>' + esc(QUESTIONS[i].label) + '</span><span>' + y + ' % oui</span></div>' +
+        '<div class="bar" role="img" aria-label="' + y + ' % de oui, ' + (100-y) + ' % de non">' +
+        '<i style="width:' + y + '%">' + (y >= 12 ? s.yes[i] : '') + '</i><span>' + (s.n - s.yes[i]) + ' non</span></div></div>';
+    }).join("");
+    return '<section><h2>' + esc(name) + '</h2><div class="avg">Moyenne : ' + fr1(avgs[p]) + ' oui sur 3 par participant</div>' + rows + '</section>';
+  }).join("");
+}
+
+async function tick(){
+  try { last = await loadStats(); $("status").textContent = "Mise à jour automatique"; $("status").className = ""; render(); }
+  catch(e){ $("status").textContent = "Serveur injoignable, nouvel essai en cours"; $("status").className = "err"; }
+}
+$("sort").onclick = () => { sorted = !sorted; $("sort").setAttribute("aria-pressed", String(sorted)); render(); };
+$("demo").hidden = !DEMO;
+tick();
+setInterval(tick, (typeof REFRESH_SECONDS === "number" ? REFRESH_SECONDS : 8) * 1000);
+</script>
+</body>
+</html>

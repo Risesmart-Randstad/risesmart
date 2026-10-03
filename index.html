@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Auto-évaluation RSE · PME+</title>
+<style>
+:root{
+  --bg:#f2f6f7; --ink:#14232b; --muted:#5a6b73; --line:#d3dde1;
+  --teal:#0f5c5c; --teal-soft:#d6e9e7; --no:#e4e9ec; --warn:#a3341f;
+  --card:#ffffff;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#0f1a20; --ink:#e8f0f2; --muted:#9db0b8; --line:#2a3b44;
+    --teal:#4fb3ad; --teal-soft:#183a3b; --no:#26343b; --warn:#ff9a85; --card:#16252c; }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+main{max-width:520px;margin:0 auto;padding:20px 18px 40px}
+h1{font-size:1.9rem;line-height:1.15;margin:8px 0 14px;letter-spacing:-.01em}
+h2{font-size:1.5rem;line-height:1.2;margin:6px 0 10px}
+p{margin:0 0 14px}
+.muted{color:var(--muted)}
+.banner{background:var(--teal-soft);color:var(--ink);border-radius:8px;padding:8px 12px;font-size:.88rem;margin-bottom:16px}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--teal);outline-offset:3px}
+.primary{display:block;width:100%;background:var(--teal);color:#fff;border:0;border-radius:12px;padding:16px;font-weight:600}
+@media (prefers-color-scheme: dark){.primary{color:#0f1a20}}
+.link{background:none;border:0;color:var(--muted);padding:10px 0;text-decoration:underline}
+.hidden{display:none!important}
+
+/* Question */
+.progress{height:6px;background:var(--no);border-radius:3px;overflow:hidden;margin:4px 0 18px}
+.progress>i{display:block;height:100%;background:var(--teal);transition:width .25s}
+.count{font-size:.9rem;color:var(--muted);margin:0}
+.pillar{font-weight:600;color:var(--teal);margin:14px 0 4px}
+.q-label{font-size:1.55rem;line-height:1.2;margin:0 0 10px;font-weight:700}
+.q-text{font-size:1.08rem;margin-bottom:12px}
+details{margin-bottom:22px;color:var(--muted);font-size:.95rem}
+summary{cursor:pointer;padding:6px 0}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ans{border-radius:14px;padding:22px 10px;font-size:1.3rem;font-weight:700;border:2px solid var(--teal)}
+.ans.yes{background:var(--teal);color:#fff}
+.ans.no{background:transparent;color:var(--ink);border-color:var(--ink)}
+@media (prefers-color-scheme: dark){.ans.yes{color:#0f1a20}}
+.ans:active{transform:scale(.97)}
+.ans[aria-pressed="true"]{box-shadow:0 0 0 4px var(--teal-soft)}
+
+/* Résultats */
+.score{font-size:1.15rem;margin-bottom:6px}
+.score b{font-size:2.6rem;letter-spacing:-.02em;display:block;line-height:1.1}
+.pill-row{padding:12px 0;border-top:1px solid var(--line)}
+.pill-row:first-of-type{border-top:0}
+.pill-head{display:flex;justify-content:space-between;gap:12px;font-weight:600}
+.pill-head span:last-child{white-space:nowrap}
+.pips{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0 4px}
+.pips i{height:14px;border-radius:7px;background:var(--no)}
+.pips i.on{background:var(--teal)}
+.avg{position:absolute;top:-4px;bottom:-4px;width:3px;background:var(--ink);border-radius:2px;transform:translateX(-1px)}
+.legend{font-size:.85rem;color:var(--muted)}
+.qrow{padding:14px 0;border-top:1px solid var(--line)}
+.qrow-top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.qrow-top strong{font-weight:600}
+.chip{flex:none;font-size:.85rem;font-weight:700;border-radius:999px;padding:2px 12px}
+.chip.yes{background:var(--teal);color:#fff}
+.chip.no{background:var(--no);color:var(--ink)}
+@media (prefers-color-scheme: dark){.chip.yes{color:#0f1a20}}
+.bar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--no);margin:8px 0 4px}
+.bar>i{display:block;background:var(--teal)}
+.qmeta{font-size:.85rem;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.apart{color:var(--warn);font-weight:600}
+.section-title{margin:28px 0 4px}
+.err{color:var(--warn);font-size:.92rem}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <div id="demo-banner" class="banner hidden">Mode démo : la répartition du groupe est simulée. Renseignez ENDPOINT dans config.js pour collecter de vraies réponses.</div>
+
+  <!-- Accueil -->
+  <section id="intro">
+    <h1>Où en est votre entreprise sur la RSE ?</h1>
+    <p>18 questions, environ 2 minutes. Répondez par oui ou non, puis découvrez votre profil et la répartition des réponses du groupe.</p>
+    <p class="muted">Les réponses sont anonymes.</p>
+    <button class="primary" id="start">Commencer</button>
+  </section>
+
+  <!-- Question -->
+  <section id="quiz" class="hidden" aria-live="polite">
+    <p class="count" id="count"></p>
+    <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+    <p class="pillar" id="pillar"></p>
+    <h2 class="q-label" id="qlabel"></h2>
+    <p class="q-text" id="qtext"></p>
+    <details id="proofs"><summary>Exemples de preuves</summary><p id="proofs-text"></p></details>
+    <div class="answers">
+      <button class="ans yes" id="yes" aria-pressed="false">Oui</button>
+      <button class="ans no" id="no" aria-pressed="false">Non</button>
+    </div>
+    <button class="link" id="back">Question précédente</button>
+  </section>
+
+  <!-- Résultats -->
+  <section id="result" class="hidden">
+    <p class="score">Vous avez répondu oui à <b id="total"></b></p>
+    <p id="apart-line" class="muted"></p>
+    <p id="status" class="err hidden"></p>
+
+    <h2 class="section-title">Votre profil par thématique</h2>
+    <p class="legend">Barres : vos « oui ». Trait noir : moyenne du groupe.</p>
+    <div id="pillars"></div>
+
+    <h2 class="section-title">Répartition des réponses</h2>
+    <p class="legend" id="n-line"></p>
+    <div id="questions"></div>
+
+    <button class="primary" id="refresh" style="margin-top:20px">Actualiser la répartition</button>
+  </section>
+</main>
+
+<script src="config.js"></script>
+<script src="questions.js"></script>
+<script src="shared.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const KEY = "pmeplus_state_v1";
+let answers = new Array(NQ).fill(null);   // true = oui, false = non
+let current = 0;
+let sid = null;
+let stats = null;
+
+function store(obj){ try { localStorage.setItem(KEY, JSON.stringify(obj)); } catch(e){} }
+function restore(){ try { return JSON.parse(localStorage.getItem(KEY) || "null"); } catch(e){ return null; } }
+function newSid(){
+  const a = new Uint8Array(12);
+  (window.crypto || window.msCrypto).getRandomValues(a);
+  return Array.from(a, b => b.toString(36).padStart(2,"0")).join("").slice(0,20);
+}
+function show(id){ ["intro","quiz","result"].forEach(s => $(s).classList.toggle("hidden", s !== id)); window.scrollTo(0,0); }
+
+function renderQuestion(){
+  const q = QUESTIONS[current];
+  $("count").textContent = "Question " + (current+1) + " sur " + NQ;
+  $("bar").style.width = (current / NQ * 100) + "%";
+  $("pillar").textContent = PILLARS[q.pillar];
+  $("qlabel").textContent = q.label;
+  $("qtext").textContent = q.text;
+  $("proofs-text").textContent = q.proofs;
+  $("proofs").open = false;
+  $("proofs").classList.toggle("hidden", !q.proofs);
+  $("yes").setAttribute("aria-pressed", String(answers[current] === true));
+  $("no").setAttribute("aria-pressed", String(answers[current] === false));
+  $("back").classList.toggle("hidden", current === 0);
+}
+
+function answer(v){
+  answers[current] = v;
+  $("yes").setAttribute("aria-pressed", String(v === true));
+  $("no").setAttribute("aria-pressed", String(v === false));
+  setTimeout(() => {
+    if (current < NQ - 1){ current++; renderQuestion(); }
+    else finish();
+  }, 160);
+}
+
+function bitsOf(a){ return a.map(v => v ? "1" : "0").join(""); }
+
+async function finish(){
+  show("result");
+  const bits = bitsOf(answers);
+  store({ sid, answers: bits, done: true });
+  // Affichage immédiat du profil personnel, puis ajout de la répartition du groupe
+  stats = null;
+  renderResult();
+  try {
+    stats = await submitAnswers(sid, bits);
+    $("status").classList.add("hidden");
+  } catch(e){
+    $("status").textContent = "Impossible de joindre le serveur : votre profil est affiché, mais pas la répartition. Touchez « Actualiser » pour réessayer.";
+    $("status").classList.remove("hidden");
+  }
+  renderResult();
+}
+
+function renderResult(){
+  const yesCount = answers.filter(Boolean).length;
+  $("total").textContent = yesCount + " question" + (yesCount>1?"s":"") + " sur " + NQ;
+
+  // Profil par pilier
+  const avgs = stats ? pillarAverages(stats) : null;
+  $("pillars").innerHTML = PILLARS.map((name, p) => {
+    const idx = QUESTIONS.map((q,i)=>q.pillar===p?i:-1).filter(i=>i>=0);
+    const mine = idx.filter(i => answers[i]).length;
+    const pips = idx.map((_, k) => '<i class="' + (k < mine ? "on" : "") + '"></i>').join("");
+    const marker = avgs ? '<span class="avg" style="left:' + (avgs[p] / idx.length * 100) + '%" title="Moyenne du groupe"></span>' : "";
+    const avgTxt = avgs ? " · groupe " + fr1(avgs[p]) : "";
+    return '<div class="pill-row"><div class="pill-head"><span>' + esc(name) + '</span><span>' + mine + ' / ' + idx.length + avgTxt + '</span></div>' +
+      '<div class="pips" role="img" aria-label="' + mine + ' oui sur ' + idx.length + '">' + pips + marker + '</div></div>';
+  }).join("");
+
+  // Répartition par question
+  if (!stats){
+    $("n-line").textContent = "Répartition indisponible pour le moment.";
+    $("questions").innerHTML = "";
+    $("apart-line").textContent = "";
+    return;
+  }
+  $("n-line").textContent = stats.n + " participant" + (stats.n>1?"s":"") + " · part de « oui » par question";
+  let apart = 0;
+  $("questions").innerHTML = QUESTIONS.map((q, i) => {
+    const y = pct(stats.yes[i], stats.n);
+    const mineYes = answers[i] === true;
+    const majorityYes = y >= 50;
+    const differs = stats.n > 1 && y !== 50 && (mineYes !== majorityYes);
+    if (differs) apart++;
+    return '<div class="qrow"><div class="qrow-top"><strong>' + esc(q.label) + '</strong>' +
+      '<span class="chip ' + (mineYes?"yes":"no") + '">' + (mineYes?"Oui":"Non") + '</span></div>' +
+      '<div class="bar" role="img" aria-label="' + y + ' % de oui"><i style="width:' + y + '%"></i></div>' +
+      '<div class="qmeta"><span>' + y + ' % oui · ' + (100-y) + ' % non</span>' +
+      (differs ? '<span class="apart">Vous êtes à contre-courant</span>' : '') + '</div></div>';
+  }).join("");
+  $("apart-line").textContent = apart
+    ? "Vous vous démarquez de la majorité sur " + apart + " question" + (apart>1?"s":"") + "."
+    : "Vos réponses sont proches de celles de la majorité.";
+}
+
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+$("start").onclick = () => { current = 0; show("quiz"); renderQuestion(); };
+$("yes").onclick = () => answer(true);
+$("no").onclick = () => answer(false);
+$("back").onclick = () => { if (current > 0){ current--; renderQuestion(); } };
+$("refresh").onclick = async () => {
+  try { stats = await loadStats(); $("status").classList.add("hidden"); }
+  catch(e){ $("status").textContent = "Actualisation impossible, réessayez dans un instant."; $("status").classList.remove("hidden"); }
+  renderResult();
+};
+
+(function init(){
+  $("demo-banner").classList.toggle("hidden", !DEMO);
+  if (location.search.includes("reset")) { try { localStorage.removeItem(KEY); } catch(e){} }
+  const saved = restore();
+  if (saved && saved.done && /^[01]{18}$/.test(saved.answers || "")){
+    sid = saved.sid;
+    answers = [...saved.answers].map(b => b === "1");
+    show("result");
+    loadStats().then(s => { stats = s; renderResult(); }).catch(() => renderResult());
+    renderResult();
+  } else {
+    sid = newSid();
+    show("intro");
+  }
+})();
+</script>
+</body>
+</html>
