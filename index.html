@@ -59,19 +59,6 @@ summary{cursor:pointer;padding:6px 0}
 .pips{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0 4px}
 .pips i{height:14px;border-radius:7px;background:var(--no)}
 .pips i.on{background:var(--teal)}
-.avg{position:absolute;top:-4px;bottom:-4px;width:3px;background:var(--ink);border-radius:2px;transform:translateX(-1px)}
-.legend{font-size:.85rem;color:var(--muted)}
-.qrow{padding:14px 0;border-top:1px solid var(--line)}
-.qrow-top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
-.qrow-top strong{font-weight:600}
-.chip{flex:none;font-size:.85rem;font-weight:700;border-radius:999px;padding:2px 12px}
-.chip.yes{background:var(--teal);color:#fff}
-.chip.no{background:var(--no);color:var(--ink)}
-@media (prefers-color-scheme: dark){.chip.yes{color:#0f1a20}}
-.bar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--no);margin:8px 0 4px}
-.bar>i{display:block;background:var(--teal)}
-.qmeta{font-size:.85rem;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
-.apart{color:var(--warn);font-weight:600}
 .section-title{margin:28px 0 4px}
 .err{color:var(--warn);font-size:.92rem}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
@@ -79,12 +66,12 @@ summary{cursor:pointer;padding:6px 0}
 </head>
 <body>
 <main>
-  <div id="demo-banner" class="banner hidden">Mode démo : la répartition du groupe est simulée. Renseignez ENDPOINT dans config.js pour collecter de vraies réponses.</div>
+  <div id="demo-banner" class="banner hidden">Mode démo : les réponses ne sont pas enregistrées. Renseignez ENDPOINT dans config.js pour les collecter.</div>
 
   <!-- Accueil -->
   <section id="intro">
     <h1>Où en est votre entreprise sur la RSE ?</h1>
-    <p>18 questions, environ 2 minutes. Répondez par oui ou non, puis découvrez votre profil et la répartition des réponses du groupe.</p>
+    <p>18 questions, environ 2 minutes. Répondez par oui ou non, puis découvrez votre profil par thématique.</p>
     <p class="muted">Les réponses sont anonymes.</p>
     <button class="primary" id="start">Commencer</button>
   </section>
@@ -107,18 +94,12 @@ summary{cursor:pointer;padding:6px 0}
   <!-- Résultats -->
   <section id="result" class="hidden">
     <p class="score">Vous avez répondu oui à <b id="total"></b></p>
-    <p id="apart-line" class="muted"></p>
     <p id="status" class="err hidden"></p>
+    <button class="primary hidden" id="retry" style="margin-bottom:16px">Renvoyer mes réponses</button>
 
     <h2 class="section-title">Votre profil par thématique</h2>
-    <p class="legend">Barres : vos « oui ». Trait noir : moyenne du groupe.</p>
+    <p class="legend">Barres : vos « oui » dans chaque thématique.</p>
     <div id="pillars"></div>
-
-    <h2 class="section-title">Répartition des réponses</h2>
-    <p class="legend" id="n-line"></p>
-    <div id="questions"></div>
-
-    <button class="primary" id="refresh" style="margin-top:20px">Actualiser la répartition</button>
   </section>
 </main>
 
@@ -131,7 +112,6 @@ const KEY = "pmeplus_state_v1";
 let answers = new Array(NQ).fill(null);   // true = oui, false = non
 let current = 0;
 let sid = null;
-let stats = null;
 
 function store(obj){ try { localStorage.setItem(KEY, JSON.stringify(obj)); } catch(e){} }
 function restore(){ try { return JSON.parse(localStorage.getItem(KEY) || "null"); } catch(e){ return null; } }
@@ -171,61 +151,38 @@ function bitsOf(a){ return a.map(v => v ? "1" : "0").join(""); }
 
 async function finish(){
   show("result");
+  store({ sid, answers: bitsOf(answers), done: true, sent: false });
+  renderResult();
+  send();
+}
+
+// Envoi des réponses ; en cas d'échec, bouton pour réessayer (et nouvel essai au prochain chargement)
+async function send(){
   const bits = bitsOf(answers);
-  store({ sid, answers: bits, done: true });
-  // Affichage immédiat du profil personnel, puis ajout de la répartition du groupe
-  stats = null;
-  renderResult();
+  $("retry").disabled = true;
   try {
-    stats = await submitAnswers(sid, bits);
+    await submitAnswers(sid, bits);
+    store({ sid, answers: bits, done: true, sent: true });
     $("status").classList.add("hidden");
+    $("retry").classList.add("hidden");
   } catch(e){
-    $("status").textContent = "Impossible de joindre le serveur : votre profil est affiché, mais pas la répartition. Touchez « Actualiser » pour réessayer.";
+    $("status").textContent = "Vos réponses n'ont pas pu être envoyées. Vérifiez votre connexion puis touchez « Renvoyer mes réponses ».";
     $("status").classList.remove("hidden");
+    $("retry").classList.remove("hidden");
   }
-  renderResult();
+  $("retry").disabled = false;
 }
 
 function renderResult(){
   const yesCount = answers.filter(Boolean).length;
   $("total").textContent = yesCount + " question" + (yesCount>1?"s":"") + " sur " + NQ;
-
-  // Profil par pilier
-  const avgs = stats ? pillarAverages(stats) : null;
   $("pillars").innerHTML = PILLARS.map((name, p) => {
     const idx = QUESTIONS.map((q,i)=>q.pillar===p?i:-1).filter(i=>i>=0);
     const mine = idx.filter(i => answers[i]).length;
     const pips = idx.map((_, k) => '<i class="' + (k < mine ? "on" : "") + '"></i>').join("");
-    const marker = avgs ? '<span class="avg" style="left:' + (avgs[p] / idx.length * 100) + '%" title="Moyenne du groupe"></span>' : "";
-    const avgTxt = avgs ? " · groupe " + fr1(avgs[p]) : "";
-    return '<div class="pill-row"><div class="pill-head"><span>' + esc(name) + '</span><span>' + mine + ' / ' + idx.length + avgTxt + '</span></div>' +
-      '<div class="pips" role="img" aria-label="' + mine + ' oui sur ' + idx.length + '">' + pips + marker + '</div></div>';
+    return '<div class="pill-row"><div class="pill-head"><span>' + esc(name) + '</span><span>' + mine + ' / ' + idx.length + '</span></div>' +
+      '<div class="pips" role="img" aria-label="' + mine + ' oui sur ' + idx.length + '">' + pips + '</div></div>';
   }).join("");
-
-  // Répartition par question
-  if (!stats){
-    $("n-line").textContent = "Répartition indisponible pour le moment.";
-    $("questions").innerHTML = "";
-    $("apart-line").textContent = "";
-    return;
-  }
-  $("n-line").textContent = stats.n + " participant" + (stats.n>1?"s":"") + " · part de « oui » par question";
-  let apart = 0;
-  $("questions").innerHTML = QUESTIONS.map((q, i) => {
-    const y = pct(stats.yes[i], stats.n);
-    const mineYes = answers[i] === true;
-    const majorityYes = y >= 50;
-    const differs = stats.n > 1 && y !== 50 && (mineYes !== majorityYes);
-    if (differs) apart++;
-    return '<div class="qrow"><div class="qrow-top"><strong>' + esc(q.label) + '</strong>' +
-      '<span class="chip ' + (mineYes?"yes":"no") + '">' + (mineYes?"Oui":"Non") + '</span></div>' +
-      '<div class="bar" role="img" aria-label="' + y + ' % de oui"><i style="width:' + y + '%"></i></div>' +
-      '<div class="qmeta"><span>' + y + ' % oui · ' + (100-y) + ' % non</span>' +
-      (differs ? '<span class="apart">Vous êtes à contre-courant</span>' : '') + '</div></div>';
-  }).join("");
-  $("apart-line").textContent = apart
-    ? "Vous vous démarquez de la majorité sur " + apart + " question" + (apart>1?"s":"") + "."
-    : "Vos réponses sont proches de celles de la majorité.";
 }
 
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
@@ -234,11 +191,7 @@ $("start").onclick = () => { current = 0; show("quiz"); renderQuestion(); };
 $("yes").onclick = () => answer(true);
 $("no").onclick = () => answer(false);
 $("back").onclick = () => { if (current > 0){ current--; renderQuestion(); } };
-$("refresh").onclick = async () => {
-  try { stats = await loadStats(); $("status").classList.add("hidden"); }
-  catch(e){ $("status").textContent = "Actualisation impossible, réessayez dans un instant."; $("status").classList.remove("hidden"); }
-  renderResult();
-};
+$("retry").onclick = send;
 
 (function init(){
   $("demo-banner").classList.toggle("hidden", !DEMO);
@@ -248,8 +201,8 @@ $("refresh").onclick = async () => {
     sid = saved.sid;
     answers = [...saved.answers].map(b => b === "1");
     show("result");
-    loadStats().then(s => { stats = s; renderResult(); }).catch(() => renderResult());
     renderResult();
+    if (saved.sent === false) send();
   } else {
     sid = newSid();
     show("intro");
