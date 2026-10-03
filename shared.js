@@ -33,7 +33,7 @@ async function submitAnswers(sid, bits) {
     [...bits].forEach((b, i) => { s.yes[i] += Number(b); });
     return s;
   }
-  return callEndpoint({ action: "submit", sid, a: bits });
+  return callEndpoint({ action: "submit", pid: sid, a: bits });
 }
 
 async function loadStats() {

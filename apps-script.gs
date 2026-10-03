@@ -25,7 +25,7 @@ function doGet(e) {
     if (p.action === "submit") {
       const lock = LockService.getScriptLock();
       lock.waitLock(10000);
-      try { submit_(p.sid, p.a); } finally { lock.releaseLock(); }
+      try { submit_(p.pid, p.a); } finally { lock.releaseLock(); }
     }
     return json_(aggregate_());
   } catch (err) {
