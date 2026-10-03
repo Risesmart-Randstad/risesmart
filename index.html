@@ -3,64 +3,84 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Auto-évaluation RSE · PME+</title>
+<meta name="theme-color" content="#2175D9">
+<title>Auto-évaluation RSE · Randstad RiseSmart</title>
+<link rel="icon" type="image/png" href="logo.png">
 <style>
+/* Couleurs reprises du logo Randstad RiseSmart (#2175D9) */
 :root{
-  --bg:#f2f6f7; --ink:#14232b; --muted:#5a6b73; --line:#d3dde1;
-  --teal:#0f5c5c; --teal-soft:#d6e9e7; --no:#e4e9ec; --warn:#a3341f;
-  --card:#ffffff;
+  --bg:#F7F5F0; --card:#FFFFFF; --ink:#0F1941; --muted:#5B6079; --line:#E4E1DA;
+  --blue:#2175D9; --blue-text:#1A64BD; --blue-soft:#E3EEFB; --no:#E9E6DF; --warn:#B3261E;
 }
 @media (prefers-color-scheme: dark){
-  :root{ --bg:#0f1a20; --ink:#e8f0f2; --muted:#9db0b8; --line:#2a3b44;
-    --teal:#4fb3ad; --teal-soft:#183a3b; --no:#26343b; --warn:#ff9a85; --card:#16252c; }
+  :root{ --bg:#0B1230; --card:#131C45; --ink:#F7F5F0; --muted:#A9AEC6; --line:#263056;
+    --blue:#2175D9; --blue-text:#8DBBF2; --blue-soft:#1B2A5C; --no:#27315A; --warn:#FF8A80; }
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);
   font:17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
-main{max-width:520px;margin:0 auto;padding:20px 18px 40px}
-h1{font-size:1.9rem;line-height:1.15;margin:8px 0 14px;letter-spacing:-.01em}
-h2{font-size:1.5rem;line-height:1.2;margin:6px 0 10px}
+main{max-width:520px;margin:0 auto;padding:16px 18px 40px}
+h1{font-size:1.9rem;line-height:1.15;margin:0 0 14px;letter-spacing:-.015em}
+h2{font-size:1.5rem;line-height:1.2;margin:6px 0 10px;letter-spacing:-.01em}
 p{margin:0 0 14px}
 .muted{color:var(--muted)}
-.banner{background:var(--teal-soft);color:var(--ink);border-radius:8px;padding:8px 12px;font-size:.88rem;margin-bottom:16px}
+.banner{background:var(--blue-soft);color:var(--ink);border-radius:8px;padding:8px 12px;font-size:.88rem;margin-bottom:16px}
 button{font:inherit;cursor:pointer}
-:focus-visible{outline:3px solid var(--teal);outline-offset:3px}
-.primary{display:block;width:100%;background:var(--teal);color:#fff;border:0;border-radius:12px;padding:16px;font-weight:600}
-@media (prefers-color-scheme: dark){.primary{color:#0f1a20}}
-.link{background:none;border:0;color:var(--muted);padding:10px 0;text-decoration:underline}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.primary{display:block;width:100%;background:var(--blue);color:#fff;border:0;border-radius:12px;padding:17px;font-weight:700;font-size:1.05rem}
+.primary:active{transform:scale(.98)}
+.link{background:none;border:0;color:var(--muted);padding:12px 0;text-decoration:underline}
 .hidden{display:none!important}
 
+/* En-tête (questions et résultats) */
+.topbar{display:flex;align-items:center;gap:12px;padding:4px 0 14px;margin-bottom:6px;border-bottom:1px solid var(--line)}
+.topbar img{height:46px;width:auto;display:block}
+.topbar span{font-size:.9rem;font-weight:600;color:var(--muted);line-height:1.25}
+
+/* Accueil */
+.hero{background:var(--blue);color:#fff;border-radius:20px;padding:30px 24px 26px;margin:4px 0 22px;text-align:center}
+.hero img{width:118px;height:auto;display:block;margin:0 auto 22px}
+.hero h1{color:#fff;margin:0 0 10px}
+.hero p{margin:0;opacity:.95}
+.facts{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:0 0 20px;padding:0;list-style:none}
+.facts li{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:.85rem;font-weight:600;white-space:nowrap}
+.note{text-align:center;color:var(--muted);font-size:.9rem;margin-top:14px}
+
 /* Question */
-.progress{height:6px;background:var(--no);border-radius:3px;overflow:hidden;margin:4px 0 18px}
-.progress>i{display:block;height:100%;background:var(--teal);transition:width .25s}
-.count{font-size:.9rem;color:var(--muted);margin:0}
-.pillar{font-weight:600;color:var(--teal);margin:14px 0 4px}
-.q-label{font-size:1.55rem;line-height:1.2;margin:0 0 10px;font-weight:700}
-.q-text{font-size:1.08rem;margin-bottom:12px}
-details{margin-bottom:22px;color:var(--muted);font-size:.95rem}
-summary{cursor:pointer;padding:6px 0}
+.count{font-size:.9rem;color:var(--muted);margin:10px 0 0;display:flex;justify-content:space-between}
+.progress{height:8px;background:var(--no);border-radius:4px;overflow:hidden;margin:6px 0 18px}
+.progress>i{display:block;height:100%;background:var(--blue);border-radius:4px;transition:width .25s}
+.pillar{display:inline-block;font-weight:700;font-size:.85rem;color:var(--blue-text);background:var(--blue-soft);border-radius:999px;padding:4px 12px;margin:2px 0 12px}
+.qcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 18px 6px;margin-bottom:18px}
+.q-label{font-size:1.45rem;line-height:1.2;margin:0 0 10px;font-weight:700}
+.q-text{font-size:1.06rem;margin-bottom:10px}
+details{margin-bottom:12px;color:var(--muted);font-size:.95rem}
+summary{cursor:pointer;padding:6px 0;color:var(--blue-text);font-weight:600}
 .answers{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.ans{border-radius:14px;padding:22px 10px;font-size:1.3rem;font-weight:700;border:2px solid var(--teal)}
-.ans.yes{background:var(--teal);color:#fff}
-.ans.no{background:transparent;color:var(--ink);border-color:var(--ink)}
-@media (prefers-color-scheme: dark){.ans.yes{color:#0f1a20}}
+.ans{border-radius:14px;padding:22px 10px;font-size:1.3rem;font-weight:700;border:2px solid var(--blue)}
+.ans.yes{background:var(--blue);color:#fff}
+.ans.no{background:var(--card);color:var(--ink);border-color:var(--ink)}
 .ans:active{transform:scale(.97)}
-.ans[aria-pressed="true"]{box-shadow:0 0 0 4px var(--teal-soft)}
+.ans[aria-pressed="true"]{box-shadow:0 0 0 4px var(--blue-soft)}
 
 /* Résultats */
-.score{font-size:1.15rem;margin-bottom:6px}
+.scorecard{background:var(--blue);color:#fff;border-radius:18px;padding:20px 22px;margin:16px 0 8px}
+.score{font-size:1.05rem;margin:0}
 .score b{font-size:2.6rem;letter-spacing:-.02em;display:block;line-height:1.1}
-.pill-row{padding:12px 0;border-top:1px solid var(--line)}
-.pill-row:first-of-type{border-top:0}
+.profile{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px 18px;margin-top:8px}
+.pill-row{padding:14px 0;border-top:1px solid var(--line)}
+.pill-row:first-child{border-top:0}
 .pill-head{display:flex;justify-content:space-between;gap:12px;font-weight:600}
-.pill-head span:last-child{white-space:nowrap}
-.pips{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0 4px}
+.pill-head span:last-child{white-space:nowrap;color:var(--blue-text);font-weight:700}
+.pips{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0 2px}
 .pips i{height:14px;border-radius:7px;background:var(--no)}
-.pips i.on{background:var(--teal)}
-.section-title{margin:28px 0 4px}
-.err{color:var(--warn);font-size:.92rem}
+.pips i.on{background:var(--blue)}
+.section-title{margin:26px 0 2px}
+.legend{font-size:.88rem;color:var(--muted)}
+.err{color:var(--warn);font-size:.92rem;margin-top:12px}
+.thanks{text-align:center;color:var(--muted);font-size:.9rem;margin-top:22px}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
 </head>
@@ -70,20 +90,35 @@ summary{cursor:pointer;padding:6px 0}
 
   <!-- Accueil -->
   <section id="intro">
-    <h1>Où en est votre entreprise sur la RSE ?</h1>
-    <p>18 questions, environ 2 minutes. Répondez par oui ou non, puis découvrez votre profil par thématique.</p>
-    <p class="muted">Les réponses sont anonymes.</p>
+    <div class="hero">
+      <img src="logo-blanc.png" alt="Randstad RiseSmart" width="285" height="310">
+      <h1>Où en est votre entreprise sur la RSE&nbsp;?</h1>
+      <p>Répondez par oui ou non, puis découvrez votre profil par thématique.</p>
+    </div>
+    <ul class="facts"><li>18 questions</li><li>2 minutes</li><li>6 thématiques</li></ul>
     <button class="primary" id="start">Commencer</button>
+    <p class="note">Vos réponses sont anonymes.</p>
   </section>
+
+  <!-- En-tête des écrans suivants -->
+  <header class="topbar hidden" id="topbar">
+    <picture>
+      <source srcset="logo-blanc.png" media="(prefers-color-scheme: dark)">
+      <img src="logo.png" alt="Randstad RiseSmart" width="285" height="310">
+    </picture>
+    <span>Auto-évaluation RSE</span>
+  </header>
 
   <!-- Question -->
   <section id="quiz" class="hidden" aria-live="polite">
-    <p class="count" id="count"></p>
+    <p class="count"><span id="count"></span><span id="pct"></span></p>
     <div class="progress" aria-hidden="true"><i id="bar"></i></div>
     <p class="pillar" id="pillar"></p>
-    <h2 class="q-label" id="qlabel"></h2>
-    <p class="q-text" id="qtext"></p>
-    <details id="proofs"><summary>Exemples de preuves</summary><p id="proofs-text"></p></details>
+    <div class="qcard">
+      <h2 class="q-label" id="qlabel"></h2>
+      <p class="q-text" id="qtext"></p>
+      <details id="proofs"><summary>Exemples de preuves</summary><p id="proofs-text"></p></details>
+    </div>
     <div class="answers">
       <button class="ans yes" id="yes" aria-pressed="false">Oui</button>
       <button class="ans no" id="no" aria-pressed="false">Non</button>
@@ -93,13 +128,14 @@ summary{cursor:pointer;padding:6px 0}
 
   <!-- Résultats -->
   <section id="result" class="hidden">
-    <p class="score">Vous avez répondu oui à <b id="total"></b></p>
+    <div class="scorecard"><p class="score">Vous avez répondu oui à <b id="total"></b></p></div>
     <p id="status" class="err hidden"></p>
     <button class="primary hidden" id="retry" style="margin-bottom:16px">Renvoyer mes réponses</button>
 
     <h2 class="section-title">Votre profil par thématique</h2>
     <p class="legend">Barres : vos « oui » dans chaque thématique.</p>
-    <div id="pillars"></div>
+    <div class="profile" id="pillars"></div>
+    <p class="thanks">Merci pour votre participation !</p>
   </section>
 </main>
 
@@ -120,12 +156,17 @@ function newSid(){
   (window.crypto || window.msCrypto).getRandomValues(a);
   return Array.from(a, b => b.toString(36).padStart(2,"0")).join("").slice(0,20);
 }
-function show(id){ ["intro","quiz","result"].forEach(s => $(s).classList.toggle("hidden", s !== id)); window.scrollTo(0,0); }
+function show(id){
+  ["intro","quiz","result"].forEach(s => $(s).classList.toggle("hidden", s !== id));
+  $("topbar").classList.toggle("hidden", id === "intro");
+  window.scrollTo(0,0);
+}
 
 function renderQuestion(){
   const q = QUESTIONS[current];
   $("count").textContent = "Question " + (current+1) + " sur " + NQ;
   $("bar").style.width = (current / NQ * 100) + "%";
+  $("pct").textContent = Math.round(current / NQ * 100) + " %";
   $("pillar").textContent = PILLARS[q.pillar];
   $("qlabel").textContent = q.label;
   $("qtext").textContent = q.text;
